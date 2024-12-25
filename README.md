@@ -26,7 +26,7 @@ int main() {
 And whenever you want to construct an object, pass the state around like so.
 ```C
     struct ril_ColorButton button = ril_CreateColorButton(250, 300, 300, 100, ORANGE);
-    ril_ButtonOnClick(&(button.inner_btn), changeToGame);
+    ril_ButtonOnClick(&(button.innerButton), changeToGame);
     ril_RenderColorButtonWithText(button, "New Game", BLACK, state);
 ```
 You can use the State struct for whatever information you want to persist across frames.

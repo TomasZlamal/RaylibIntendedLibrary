@@ -108,7 +108,7 @@ void ril_RenderButtonWithText(ril_Button button, const char* textContent, Color 
 //
 
 typedef struct ril_ColorButton {
-    ril_Button inner_btn;
+    ril_Button innerButton;
     Color backgroundColor;
 } ril_ColorButton;
 
@@ -128,16 +128,16 @@ ril_ColorButton ril_CreateColorButton(int x, int y, int w, int h, Color color) {
 //
 
 void ril_RenderColorButton(ril_ColorButton button, STATE_TYPE state) {
-    Rectangle rectangle = button.inner_btn.rectangle;
+    Rectangle rectangle = button.innerButton.rectangle;
     DrawRectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height, button.backgroundColor);
-    ril_RenderButton(button.inner_btn, state); 
+    ril_RenderButton(button.innerButton, state); 
 }
 
 void ril_RenderColorButtonWithText(ril_ColorButton button, const char* textContent, Color textColor, STATE_TYPE state) {
-    Rectangle rectangle = button.inner_btn.rectangle;
+    Rectangle rectangle = button.innerButton.rectangle;
     DrawRectangle(rectangle.x, rectangle.y, rectangle.width, rectangle.height, button.backgroundColor);
 
-    ril_RenderButtonWithText(button.inner_btn, textContent, textColor, state);
+    ril_RenderButtonWithText(button.innerButton, textContent, textColor, state);
 }
 
 
@@ -146,13 +146,77 @@ void ril_RenderColorButtonWithText(ril_ColorButton button, const char* textConte
 //
 //
 
-// Technically this is inefficient because ril_Button has a redundant Color field
-// A way to solve this would be to create another struct, TexturelessButton,
-// which would be the new base class that all button structs have
-// this new struct wouldn't have a Color field.
-// TODO: Divide render functionality between texture-less buttons
 typedef struct ril_SpriteButton {
-    ril_Button button;
+    ril_Button innerButton;
     Texture2D texture;
+    Color tint;
 } ril_SpriteButton;
+
+
+ril_SpriteButton ril_CreateSpriteButton(int x, int y, Texture2D texture, Color tint) {
+    ril_Button btn = ril_CreateButton(x, y, texture.width, texture.height);
+    ril_SpriteButton out = {btn, texture, tint};
+    return out;
+}
+
+void ril_RenderSpriteButton(ril_SpriteButton button, STATE_TYPE state) {
+    ril_RenderButton(button.innerButton, state);
+    DrawTexture(button.texture, button.innerButton.rectangle.x, button.innerButton.rectangle.y, button.tint);
+}
+
+typedef struct ril_Graph2D {
+    Vector2* points; // sorted
+    int len;
+    Rectangle bounds;
+    int min_y;
+    int max_y;
+    Color line_color;
+} ril_Graph2D;
+
+// VERY IMPORTANT: this function does NOT take ownership of points
+ril_Graph2D ril_CreateGraph2D(Vector2* points, int len, Rectangle bounds, Color color) {
+    // sort the graph
+    
+    if(len == 0) {
+        ril_Graph2D out = {0, 0, bounds, 0, 0};
+        return out;
+    }
+    int min_y = points[0].y;
+    int max_y = points[0].y;
+    for(int i = 0; i < len; i++) {
+        for(int j = i+1; j < len; j++) {
+            if(points[j].x < points[i].x) {
+                Vector2 temp = points[j];
+                points[j] = points[i];
+                points[i] = temp;
+            }
+        }
+        if(points[i].y > max_y) {
+            max_y = points[i].y;
+        }
+        if(points[i].y < min_y) {
+            min_y = points[i].y;
+        }
+    }
+    ril_Graph2D out = {points, len, bounds, min_y, max_y, color};
+    return out;
+}
+
+void ril_DrawGraph2D(ril_Graph2D graph) {
+    int offset_x = graph.bounds.x;
+    int offset_y = graph.bounds.y;
+    int multiplier_x = graph.bounds.width / (graph.points[graph.len-1].x - graph.points[0].x);
+    int multiplier_y = graph.bounds.height / (graph.max_y - graph.min_y);
+    for(int i = 0; i < graph.len-1; i++) {
+        Vector2* pointA = graph.points+i;
+        Vector2* pointB = graph.points+i+1;
+        DrawLine(
+                pointA->x*multiplier_x+offset_x,
+                pointA->y*multiplier_y+offset_y,
+                pointB->x*multiplier_x+offset_x,
+                pointB->y*multiplier_y+offset_y,
+                graph.line_color
+                );
+    }
+}
 #endif
