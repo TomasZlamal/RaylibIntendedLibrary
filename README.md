@@ -7,6 +7,27 @@ So far, this library only has a button definition, but I plan on adding much mor
 ## The overarching goal of this library
 Speed up the—admittedly already quite fast—GUI development in RayLib.
 The goal is to have the simplicity of RayLib with some pre-made patterns.
+## Example usage
+First, define the state type.
+```C
+// inside main.c
+struct State {};
+
+#define STATE_TYPE State*
+// ...
+int main() {
+    
+    // ... Raylib code
+    struct State* state = malloc(sizeof(struct State));
+}
+```
+And whenever you want to construct an object, pass the state around like so.
+```C
+    struct ril_ColorButton button = ril_CreateColorButton(250, 300, 300, 100, ORANGE);
+    ril_ButtonOnClick(&(button.inner_btn), changeToGame);
+    ril_RenderColorButtonWithText(button, "New Game", BLACK, state);
+```
+Since the state lasts for as long as the program runs, you technically don't need to deallocate it.
 ## A non-comprehensive to-do list
 - [ ] All button types:
   - [ ] Textureless button
