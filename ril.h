@@ -164,6 +164,11 @@ void ril_RenderSpriteButton(ril_SpriteButton button, STATE_TYPE state) {
     DrawTexture(button.texture, button.innerButton.rectangle.x, button.innerButton.rectangle.y, button.tint);
 }
 
+// 
+// 2D Point Graphs
+//
+//
+
 typedef struct ril_Graph2D {
     Vector2* points; // sorted
     int len;
