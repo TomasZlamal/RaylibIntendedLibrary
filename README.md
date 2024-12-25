@@ -10,15 +10,17 @@ The goal is to have the simplicity of RayLib with some pre-made patterns.
 ## Example usage
 First, define the state type.
 ```C
+#include "raylib.h"
+#include "ril.h"
 // inside main.c
-struct State {};
+typedef struct State {} State;
 
 #define STATE_TYPE State*
 // ...
 int main() {
-    
     // ... Raylib code
-    struct State* state = malloc(sizeof(struct State));
+    State* state = malloc(sizeof(State));
+    // ... Other Raylib code
 }
 ```
 And whenever you want to construct an object, pass the state around like so.
@@ -27,6 +29,9 @@ And whenever you want to construct an object, pass the state around like so.
     ril_ButtonOnClick(&(button.inner_btn), changeToGame);
     ril_RenderColorButtonWithText(button, "New Game", BLACK, state);
 ```
+You can use the State struct for whatever information you want to persist across frames.
+I should note that all of the render functions(e.g. ril_RenderColorButton), should be between
+`BeginDrawing()` and `EndDrawing()`.
 Since the state lasts for as long as the program runs, you technically don't need to deallocate it.
 ## A non-comprehensive to-do list
 - [ ] All button types:
