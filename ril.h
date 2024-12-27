@@ -29,6 +29,8 @@ typedef optional(Sound) opt_sound;
 #define MAX_BUTTON_TEXT_LENGTH 200
 #define FONT_WIDTH_TO_HEIGHT_RATIO 4/7
 
+int ril_FrameCount = 0;
+
 //
 // Base Button Functions and Structs
 //
@@ -180,12 +182,13 @@ typedef struct ril_Graph2D {
 
 // VERY IMPORTANT: this function does NOT take ownership of points
 ril_Graph2D ril_CreateGraph2D(Vector2* points, int len, Rectangle bounds, Color color) {
-    // sort the graph
     
     if(len == 0) {
         ril_Graph2D out = {0, 0, bounds, 0, 0};
         return out;
     }
+
+    // sort the graph
     int min_y = points[0].y;
     int max_y = points[0].y;
     for(int i = 0; i < len; i++) {
@@ -222,6 +225,97 @@ void ril_DrawGraph2D(ril_Graph2D graph) {
                 pointB->y*multiplier_y+offset_y,
                 graph.line_color
                 );
+    }
+}
+
+// 
+// Text Input
+//
+// 
+
+typedef struct ril_TextInput {
+    // With base methods
+    Rectangle bounds;
+    const char* prompt_text;
+    const char* input_label;
+
+    // With other factory methods
+    char* buf;
+    int max_len;
+    int curr_len;
+    void(*cb)(STATE_TYPE state);
+} ril_TextInput;
+
+ril_TextInput ril_CreateTextInput(int x, int y, int w, int h, const char* prompt, const char* label) {
+    Rectangle rec = {x, y, w, h};
+    ril_TextInput text = {rec, prompt, label, 0, 0, 0, 0};
+    return text;
+}
+
+void ril_SetTextInputBuffer(ril_TextInput* in, char* buf, int max) {
+    in->buf = buf;
+    buf[0] = '\0';
+    in->max_len = max;
+}
+void ril_SetTextInputCallback(ril_TextInput* input, void(*cb)(STATE_TYPE state)) {
+    input->cb = cb;
+}
+void ril_DrawTextInput(ril_TextInput* input, STATE_TYPE state) {
+    Rectangle textBox = input->bounds;
+    bool mouseOnText = CheckCollisionPointRec(GetMousePosition(), textBox);
+
+    //
+    // INPUT DETECTION
+    //
+    if (mouseOnText)
+    {
+        // Set the window's cursor to the I-Beam
+        SetMouseCursor(MOUSE_CURSOR_IBEAM);
+
+        // Get char pressed (unicode character) on the queue
+        int key = GetCharPressed();
+
+        // Check if more characters have been pressed on the same frame
+        while (key > 0)
+        {
+            // NOTE: Only allow keys in range [32..125]
+            if ((key >= 32) && (key <= 125) && (input->curr_len < input->max_len))
+            {
+                input->buf[input->curr_len] = (char)key;
+                input->buf[input->curr_len+1] = '\0'; // Add null terminator at the end of the string.
+                input->curr_len++;
+            }
+
+            key = GetCharPressed();  // Check next character in the queue
+        }
+
+        if (IsKeyPressed(KEY_BACKSPACE))
+        {
+            input->curr_len--;
+            if (input->curr_len < 0) input->curr_len = 0;
+            input->buf[input->curr_len] = '\0';
+        }
+    }
+    else SetMouseCursor(MOUSE_CURSOR_DEFAULT);
+
+    // drawing
+    //
+    DrawText(input->prompt_text, textBox.x, textBox.y-20, 20, GRAY);
+    DrawRectangleRec(textBox, LIGHTGRAY);
+    if (mouseOnText) DrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, RED);
+    else DrawRectangleLines((int)textBox.x, (int)textBox.y, (int)textBox.width, (int)textBox.height, DARKGRAY);
+
+    DrawText(input->buf, (int)textBox.x + 5, (int)textBox.y + 8, 40, MAROON);
+
+    DrawText(TextFormat("%i/%i", input->curr_len, input->max_len), textBox.x+textBox.width+10, textBox.y, 20, DARKGRAY);
+
+    if (mouseOnText)
+    {
+        if (input->curr_len < input->max_len)
+        {
+            // Draw blinking underscore char
+            if (((ril_FrameCount/20)%2) == 0) DrawText("_", (int)textBox.x + 8 + MeasureText(input->buf, 40), (int)textBox.y + 12, 40, MAROON);
+        }
     }
 }
 #endif
