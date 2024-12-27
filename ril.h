@@ -17,6 +17,8 @@
 #warning "Raylib not detected or corrupted"
 #endif
 
+#include <stdio.h>
+
 //
 // Util Definitions
 //
@@ -28,9 +30,17 @@ typedef optional(Sound) opt_sound;
 
 #define MAX_BUTTON_TEXT_LENGTH 200
 #define FONT_WIDTH_TO_HEIGHT_RATIO 4/7
+#if defined(__GNUC__) || defined(__clang__)
+    #define DYNAMIC_ALLOC __attribute__((warn_unused_result))
+#else
+    #define DYNAMIC_ALLOC
+#endif
 
 int ril_FrameCount = 0;
 
+void ril_IntToChar(char* buf, int i) {
+    sprintf(buf, "%d", i);
+}
 //
 // Base Button Functions and Structs
 //
@@ -99,7 +109,7 @@ void ril_RenderButtonWithText(ril_Button button, const char* textContent, Color 
     textSize = rectangle.height/4;
     textY = rectangle.y + textSize*1.5;
     // approximation of width to height of the default font
-    textX = rectangle.x + (rectangle.width - charCount*textSize*FONT_WIDTH_TO_HEIGHT_RATIO) / 2;
+    textX = rectangle.x + (rectangle.width - charCount*textSize*FONT_WIDTH_TO_HEIGHT_RATIO) / 2+4;
      
     DrawText(textContent, textX, textY, textSize, textColor);
 }

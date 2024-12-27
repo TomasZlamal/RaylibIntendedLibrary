@@ -34,9 +34,9 @@ I should note that all of the render functions(e.g. ril_RenderColorButton), shou
 `BeginDrawing()` and `EndDrawing()`.
 Since the state lasts for as long as the program runs, you technically don't need to deallocate it.
 ## A non-comprehensive to-do list
-- [ ] All button types:
-  - [ ] Textureless button
-  - [ ] A colored button
-  - [ ] Button with a 2DTexture
+- [x] All button types
+- [x] A basic 2D Graph render feature
+- [ ] 2D Graphs with y labels, x labels, ...
+- [ ] Text input form
 - [ ] 3D Render handling
   - [ ] A 3D world struct(containing the player(camera), objects(planes, cubes, ...), ...)
